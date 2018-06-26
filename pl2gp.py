@@ -15,13 +15,13 @@ with open(sys.argv[1], 'r') as vcf:
 
     # print header
     header = vcf.readline().strip().split()
-    newHead = header[0:2] + header[9:]
+    newHead = header[0:2] + header[3:5] + header[9:]
     print "\t".join(newHead)
     
     # go through vcf and convert PLs to GPs
     for line in vcf:
         newline = line.strip().split()
-        samples = newline[0:9]
+        meta = newline[0:9]
         genos = newline[9:]
         genoScores = [None]*len(genos)
         for geno in range(len(genos)):
@@ -39,7 +39,7 @@ with open(sys.argv[1], 'r') as vcf:
             else:
                 sys.stderr.write("\n\nbiallelic only\n\n")
                 1/0
-        outline = samples[0:2] + genoScores
+        outline = meta[0:2] + meta[3:5] + genoScores
         print "\t".join(map(str, outline))
             
                     
