@@ -2,9 +2,14 @@
 
 
 # NOTE:
+# don't use this script without extensive testing and fixing the code because it probably doesn't work right
+# this script is fundamentally different than the simon martin script, and the results are qualitatively different
 # the input vcf should be unfiltered, but should contain only the samples you want to analyze
 # currently calculating dxy for windows with as few as one snp
 # we are ignoring snps without sufficient coverage which could make things weird, or downwardly bias dxy
+# the dxy calculation here is as described in the Hahn textbook (see where he describes unphased data), therefore
+# dxy values calculated here differ from the Simon Martin script because he averages the number of differences, instead of summing them
+# the Simon Martin approach is better when sample size is variable. 
 
 # input
 # 1. vcf
@@ -30,7 +35,7 @@ sSize = int(sys.argv[7])
 # function for calculating Dxy from a set of snps
 def processWindow(theData, populDict, sampleOrder, reverseDict):
 
-    # make a dictionary of haplotyes, with their frequencies, for each population
+    # make a dictionary of diplotypes, with their frequencies, for each population
     haplos1 = {} 
     haplos2 = {}
     for sampl in range(len(theData)):
@@ -48,14 +53,12 @@ def processWindow(theData, populDict, sampleOrder, reverseDict):
             sys.stderr.write("\n\nHouston we have a problem\n\n")
             1/0
 
-    # compare each pair of haplotypes
+    # compare each pair of diplotypes
     dxy = 0
     for s1 in haplos1:
         h1 = list(s1)
         if set(h1) != set(["N"]): # missing data only
             x = float(haplos1[s1]) / reverseDict[0]
-            #a[:] = [4 if x==1 else x for x in a]
-            #h1[:] = [x for x in h1 if x != "N"]
             for s2 in haplos2:
                 h2 = list(s2)
                 if set(h2) != set(["N"]):
@@ -68,10 +71,8 @@ def processWindow(theData, populDict, sampleOrder, reverseDict):
                         else:
                             c1.append(h1[p])
                             c2.append(h2[p])
-                            
                     diffs = sum(abs(numpy.subtract( map(int,c1), map(int,c2) )))
-                    dxy += (diffs * x * y * 2) # the *2 at the end is to make this calculation comparable with the actual full-haplotype dxy calculation
-    
+                    dxy += (diffs * x * y)
     return dxy
     
     
@@ -118,7 +119,7 @@ def processChrom(snps, windowSize, stepSize, popDict, minDepth, minProp, numInfo
             else:
                 keepOnSliding = False
 
-        # apply additional checks, and construct haplotypes
+        # apply additional checks, and construct diplotypes
         numSnpsInWindow = len(snpsInsideWindow)
         if numSnpsInWindow > 0:
             removeList = []
