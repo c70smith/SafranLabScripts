@@ -4,8 +4,7 @@
 # NOTE:
 # the input vcf should be unfiltered, but should contain only the samples you want to analyze
 # currently calculating dxy for windows with as few as one snp
-# the dxy calculation requires haplotypes, which we do not have, therefore I'm counting the total allelic differences between two haploids 
-# also we are ignoring snps without sufficient coverage which could make things weird, or downwardly bias dxy
+# we are ignoring snps without sufficient coverage which could make things weird, or downwardly bias dxy
 
 # input
 # 1. vcf
@@ -71,7 +70,7 @@ def processWindow(theData, populDict, sampleOrder, reverseDict):
                             c2.append(h2[p])
                             
                     diffs = sum(abs(numpy.subtract( map(int,c1), map(int,c2) )))
-                    dxy += (diffs * x * y)
+                    dxy += (diffs * x * y * 2) # the *2 at the end is to make this calculation comparable with the actual full-haplotype dxy calculation
     
     return dxy
     
